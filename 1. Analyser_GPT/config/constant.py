@@ -1,3 +1,0 @@
-DOCKER_WORKING_DIRECTORY_NAME = 'work_dir_docker'
-DOCKER_TIMEOUT = 120
-MODEL_OPENAI = 'gpt-4o-mini'
