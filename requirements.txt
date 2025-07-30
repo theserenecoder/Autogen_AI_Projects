@@ -7,3 +7,4 @@ dotenv
 openai
 tiktoken
 docker
+streamlit

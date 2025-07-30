@@ -1,3 +1,5 @@
 .env
 __pycache__/
 venv-analyzer-gpt
+temp
+work_dir_docker
