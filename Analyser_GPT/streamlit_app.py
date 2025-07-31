@@ -1,10 +1,8 @@
 import streamlit as st
 import asyncio
 import os
-import pandas as pd
-from datetime import datetime
 
-from team.analyzer_team import getAnalyzerTeam
+from team.dsa_solver_team import getDSASolverTeam
 from config.docker_util import getDockerCommandLineExecutor, start_docker_container, stop_docker_container
 from models.openai_model_client import getOpenAIModelClient
 from config.constant import DOCKER_WORKING_DIRECTORY_NAME
@@ -12,7 +10,7 @@ from autogen_agentchat.messages import TextMessage
 from autogen_agentchat.base import TaskResult
 
 
-st.header('Analyzer GPT - Digital Data Analyzer')
+st.header('AgentGini - DSA Solver')
 
 #upload_file = st.file_uploader("Upload a CSV file", type=["csv"])
 
@@ -22,49 +20,26 @@ if 'messages' not in st.session_state:
     st.session_state.messages = []
 if 'autogen_team_state' not in st.session_state:
     st.session_state.autogen_team_state = None
-if 'image_paths' not in st.session_state:
-    st.session_state.image_paths = []
-if 'file_uploaded_and_saved' not in st.session_state:
-    st.session_state.file_uploaded_and_saved = False
 
 ## Chat input for Task and File upload
-chat_dict = st.chat_input(
-    "Enter your task here...", 
-    accept_file=True,
-    file_type=['csv']
-)
-
-task=''
-upload_file=''
-
-if chat_dict and chat_dict.text:
-    task = chat_dict.text
-if chat_dict and chat_dict.files:
-    upload_file = chat_dict.files[0]
-    file = pd.read_csv(upload_file)
-    st.dataframe(file.head(10))
-    
+task= st.chat_input("Enter your DSA Query to solve")
 
 
-
-async def run_analyzer_gpt(docker, openai_model_client,task):
+async def run_analyzer_gpt(docker, openai_model_client, task):
     try:
         await start_docker_container(docker)
-        analyzer_team = getAnalyzerTeam(docker,openai_model_client)
+        dsa_solver_team = getDSASolverTeam(docker, openai_model_client)
         
         if st.session_state.autogen_team_state is not None:
-            await analyzer_team.load_state(st.session_state.autogen_team_state)
-
-        # Clear image paths at the start of a new task execution
-        st.session_state.image_paths = []
+            await dsa_solver_team.load_state(st.session_state.autogen_team_state)
         
-        async for message in analyzer_team.run_stream(task=task):
+        async for message in dsa_solver_team.run_stream(task=task):
             if isinstance(message, TextMessage):
                 if message.source.startswith('user'):
                     with st.chat_message('User', avatar=':material/face:'):
                         st.markdown(message.content)
 
-                elif message.source.startswith('Data_Analyzer_Agent'):
+                elif message.source.startswith('DSA_Solver_Agent'):
                     with st.chat_message('Data Analyzer', avatar=':material/smart_toy:'):
                         st.markdown(message.content)
 
@@ -72,13 +47,18 @@ async def run_analyzer_gpt(docker, openai_model_client,task):
                     with st.chat_message('Code Executor', avatar=':material/android:'):
                         st.text(message.content)
                         
+                elif message.source.startswith('Code_Reviewer_Agent'):
+                    with st.chat_message('Code Reviewer', avatar=':material/support_agent:'):
+                        st.markdown(message.content)
+                        
                 st.session_state.messages.append(message.content)
                 
             elif isinstance(message,TaskResult):
-                st.markdown(f"Stop Reason : {message.stop_reason}")
+                with st.chat_message('stopper',avatar=':material/dangerous:'):
+                    st.markdown(f"Task Ccompleted : {message.stop_reason}")
                 st.session_state.messages.append(message.stop_reason)
                 
-        st.session_state.autogen_team_state = await analyzer_team.save_state()
+        st.session_state.autogen_team_state = await dsa_solver_team.save_state()
 
         return None
     
@@ -94,44 +74,13 @@ if st.session_state.messages:
     for msg in st.session_state.messages:
         st.markdown(msg)
     
-if task:
-    if upload_file is not None:
-        
-        if not os.path.exists(DOCKER_WORKING_DIRECTORY_NAME):
-            os.makedirs(DOCKER_WORKING_DIRECTORY_NAME, exist_ok=True)
-        
-        
-        file_path = os.path.join(DOCKER_WORKING_DIRECTORY_NAME,'data.csv')
-        
-        with open(file_path, 'wb') as file:
-            file.write(upload_file.getbuffer())
-            
-        openai_model_client = getOpenAIModelClient()
-        docker = getDockerCommandLineExecutor()
-        
-        error = asyncio.run(run_analyzer_gpt(docker,openai_model_client,task))
-        
-        if error:
-            st.error('An error has occured: {error}')
-        
-        # image_folder = f"Image_{datetime.now().strftime('%m_%d_%Y_%H_%M')}"
-        # image_dir_path = os.path.join(DOCKER_WORKING_DIRECTORY_NAME,image_folder)
-        
-        # if not os.path.exists(image_dir_path):
-        #     os.makedirs(image_dir_path, exist_ok=True)
-            
-        png_files = [f for f in os.listdir(DOCKER_WORKING_DIRECTORY_NAME) if f.endswith('.png')]
-        if png_files:
-            for png_file in png_files:
-                st.image(os.path.join(DOCKER_WORKING_DIRECTORY_NAME,png_file), caption=png_file)
-        
-        # image_path = os.path.join(DOCKER_WORKING_DIRECTORY_NAME,'output.png')
-        
-        # if os.path.exists(image_path):
-        #     st.image(image_path)
+if task:    
+    openai_model_client = getOpenAIModelClient()
+    docker = getDockerCommandLineExecutor()
     
-    else:
-        st.warning('Please upload a file and then provide a task')
+    error = asyncio.run(run_analyzer_gpt(docker,openai_model_client,task))
+    
+    if error:
+        st.error('An error has occured: {error}')
+    
         
-else:
-    st.warning('Please provide the task')
