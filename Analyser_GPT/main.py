@@ -22,11 +22,11 @@ async def main():
         async for message in agents_team.run_stream(task=task):
             if isinstance(message,TextMessage):
                 if message.source.startswith('user'):
-                    print('User')
+                    print(f'User:\n{message.content}\n')
                 if message.source.startswith('Data_Analyzer_Agent'):
-                    print("Data Analyzer Agent")
+                    print(f"Data Analyzer Agent: \n{message.content}\n")
                 elif message.source.startswith('Python_Code_Executor'):
-                    print('Python Code Executor')
+                    print(f'Python Code Executor:\n{message.content}\n')
             elif isinstance(message,TaskResult):
                 print(message.messages[-1].content)
             

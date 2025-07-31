@@ -3,6 +3,7 @@ import asyncio
 import os
 import pandas as pd
 from datetime import datetime
+import regex as re
 
 from team.analyzer_team import getAnalyzerTeam
 from config.docker_util import getDockerCommandLineExecutor, start_docker_container, stop_docker_container
@@ -24,27 +25,16 @@ if 'autogen_team_state' not in st.session_state:
     st.session_state.autogen_team_state = None
 if 'image_paths' not in st.session_state:
     st.session_state.image_paths = []
-if 'file_uploaded_and_saved' not in st.session_state:
-    st.session_state.file_uploaded_and_saved = False
+if 'saved_file_path' not in st.session_state:
+    st.session_state.saved_file_path = None
+
+with st.sidebar:
+    current_upload_file = st.file_uploader('Upload a CSV file.',type=['csv'])
 
 ## Chat input for Task and File upload
-chat_dict = st.chat_input(
-    "Enter your task here...", 
-    accept_file=True,
-    file_type=['csv']
+current_task = st.chat_input(
+    "Enter your task here..."
 )
-
-task=''
-upload_file=''
-
-if chat_dict and chat_dict.text:
-    task = chat_dict.text
-if chat_dict and chat_dict.files:
-    upload_file = chat_dict.files[0]
-    file = pd.read_csv(upload_file)
-    st.dataframe(file.head(10))
-    
-
 
 
 async def run_analyzer_gpt(docker, openai_model_client,task):
@@ -74,6 +64,22 @@ async def run_analyzer_gpt(docker, openai_model_client,task):
                         
                 st.session_state.messages.append(message.content)
                 
+                ## Image Detection Logic
+                if message.source.startswith('Python_Code_Executor'):
+                    image_list_match = re.search(r'Generated_Images:\s*(.*)',message.content)
+                    
+                    if image_list_match:
+                        filename_str = image_list_match.group(1)
+                        generated_relative_paths = [f.strip() for f in filename_str.split(",") if f.strip().endswith('.png')]
+                        
+                        for relative_path in generated_relative_paths:
+                            image_file_path = os.path.join(DOCKER_WORKING_DIRECTORY_NAME,relative_path)
+                            #st.image(image_file_path, caption=image_file_path)
+                            
+                            if os.path.exists(image_file_path) and image_file_path not in st.session_state.image_paths:
+                                st.session_state.image_paths.append(image_file_path)
+                                #st.rerun()
+                
             elif isinstance(message,TaskResult):
                 st.markdown(f"Stop Reason : {message.stop_reason}")
                 st.session_state.messages.append(message.stop_reason)
@@ -93,9 +99,13 @@ async def run_analyzer_gpt(docker, openai_model_client,task):
 if st.session_state.messages:
     for msg in st.session_state.messages:
         st.markdown(msg)
+        
+if st.session_state.image_paths:
+    for img in st.session_state.image_paths:
+        st.image(img, caption=img)
     
-if task:
-    if upload_file is not None:
+if current_task:
+    if current_upload_file is not None:
         
         if not os.path.exists(DOCKER_WORKING_DIRECTORY_NAME):
             os.makedirs(DOCKER_WORKING_DIRECTORY_NAME, exist_ok=True)
@@ -104,31 +114,20 @@ if task:
         file_path = os.path.join(DOCKER_WORKING_DIRECTORY_NAME,'data.csv')
         
         with open(file_path, 'wb') as file:
-            file.write(upload_file.getbuffer())
+            file.write(current_upload_file.getbuffer())
             
         openai_model_client = getOpenAIModelClient()
         docker = getDockerCommandLineExecutor()
         
-        error = asyncio.run(run_analyzer_gpt(docker,openai_model_client,task))
+        error = asyncio.run(run_analyzer_gpt(docker,openai_model_client,current_task))
         
         if error:
             st.error('An error has occured: {error}')
         
-        # image_folder = f"Image_{datetime.now().strftime('%m_%d_%Y_%H_%M')}"
-        # image_dir_path = os.path.join(DOCKER_WORKING_DIRECTORY_NAME,image_folder)
-        
-        # if not os.path.exists(image_dir_path):
-        #     os.makedirs(image_dir_path, exist_ok=True)
-            
-        png_files = [f for f in os.listdir(DOCKER_WORKING_DIRECTORY_NAME) if f.endswith('.png')]
-        if png_files:
-            for png_file in png_files:
-                st.image(os.path.join(DOCKER_WORKING_DIRECTORY_NAME,png_file), caption=png_file)
-        
-        # image_path = os.path.join(DOCKER_WORKING_DIRECTORY_NAME,'output.png')
-        
-        # if os.path.exists(image_path):
-        #     st.image(image_path)
+
+        if st.session_state.image_paths:
+            for img in st.session_state.image_paths:
+                st.image(img, caption=img)
     
     else:
         st.warning('Please upload a file and then provide a task')
