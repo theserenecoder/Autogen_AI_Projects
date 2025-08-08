@@ -2,7 +2,7 @@
 termination:
   word: "APPROVE"
   max_message_turns: 13
-  max_turns: 3
+  max_turns: 12
 
 # LLM configuration
 llm_config:
@@ -13,39 +13,47 @@ llm_config:
 # Agent configurations
 agents:
   # Inner Team Agents
-  - name: "PlannerAgent"
+  PlannerAgent:
+    name: "PlannerAgent"
     system_message_key: "PlannerAgent" 
     is_user_proxy: false
 
-  - name: "RecipeAgent"
+  RecipeAgent:
+    name: "RecipeAgent"
     system_message_key: "RecipeAgent"
     is_user_proxy: false
 
-  - name: "CritiqueAgent"
+  CritiqueAgent:
+    name: "CritiqueAgent"
     system_message_key: "CritiqueAgent"
     is_user_proxy: false
 
   # Inner Team User Proxy Agent
-  - name: "CulinaryTeamUserApproval"
+  CulinaryTeamUserApproval:
+    name: "CulinaryTeamUserApproval"
     system_message_key: "CulinaryTeamUserApproval"
     is_user_proxy: true
     human_input_mode: "ALWAYS" 
 
   # Outer Team Agents
-  - name: "CulinaryTeamAgent"
+  CulinaryTeamAgent:
+    name: "CulinaryTeamAgent"
     system_message_key: "CulinaryTeamAgent"
     is_user_proxy: false
 
-  - name: "LogisticAgent"
+  LogisticAgent:
+    name: "LogisticAgent"
     system_message_key: "LogisticAgent"
     is_user_proxy: false
 
-  - name: "BudgetAgent"
+  BudgetAgent:
+    name: "BudgetAgent"
     system_message_key: "BudgetAgent"
     is_user_proxy: false
 
   # Outer Team User Proxy Agent
-  - name: "FinalApproval"
+  FinalApproval:
+    name: "FinalApproval"
     system_message_key: "FinalApproval"
     is_user_proxy: true
     human_input_mode: "ALWAYS"

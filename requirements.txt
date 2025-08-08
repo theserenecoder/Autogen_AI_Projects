@@ -8,3 +8,5 @@ openai
 tiktoken
 docker
 streamlit
+pyyaml
+structlog

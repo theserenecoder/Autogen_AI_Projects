@@ -90,8 +90,7 @@ async def main():
         You are the CulinaryTeamAgent, acting as a single, specialized expert within the outer team. 
         Your sole purpose is to produce a finalized, human-approved menu from the inner 'Culinary Team' workflow. 
         You do not generate recipes yourself. 
-        Once the inner team has successfully created and gotten a menu approved by the human, you will provide this final menu and ingredients required to the LogisticsAgent as a complete input.
-        You will also save the Complete Menu, Ingredients and Recipes as a .docx file.
+        Once the inner team has successfully created and gotten a menu approved by the human, you will provide this final menu, ingredients and recipes required to the LogisticsAgent as a complete input.
         If the human rejects the menu, you will manage the inner team's revision process until a menu is approved.
         """
     )
@@ -153,7 +152,7 @@ async def main():
     event_manager = RoundRobinGroupChat(
         participants=[outer_culinary_team, logistic_agent, budget_agent,final_approval],
         termination_condition=outer_team_termination,
-        max_turns=3
+        max_turns=12
     )
     
     task = """

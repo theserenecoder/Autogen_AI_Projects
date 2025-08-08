@@ -3,3 +3,5 @@ __pycache__/
 venv-analyzer-gpt
 temp
 work_dir_docker
+logs/
+catering_event_planner.egg-info
