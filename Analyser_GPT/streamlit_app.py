@@ -55,7 +55,7 @@ async def run_analyzer_gpt(docker, openai_model_client, task):
                 
             elif isinstance(message,TaskResult):
                 with st.chat_message('stopper',avatar=':material/dangerous:'):
-                    st.markdown(f"Task Ccompleted : {message.stop_reason}")
+                    st.markdown(f"Task Completed : {message.stop_reason}")
                 st.session_state.messages.append(message.stop_reason)
                 
         st.session_state.autogen_team_state = await dsa_solver_team.save_state()
