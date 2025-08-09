@@ -4,7 +4,7 @@ from logger.custom_logger import CustomLogger
 
 log = CustomLogger().get_logger(__file__)
 
-class CustomException:
+class CustomException(Exception):
     """A class for raising custom exception"""
     
     def __init__(self, error_message, error_details:sys):
