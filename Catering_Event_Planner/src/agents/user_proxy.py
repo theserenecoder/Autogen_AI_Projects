@@ -15,7 +15,7 @@ def getCulinaryTeamUserApproval():
         log.info("Initializing Culinary Team Approval Agent")
         ## loading config
         config = load_config()
-        agent_info = config['CulinaryTeamUserApproval']
+        agent_info = config['agents']['CulinaryTeamUserApproval']
         ## agent
         culinary_team_user_approval = UserProxyAgent(
             name = agent_info['name'],
