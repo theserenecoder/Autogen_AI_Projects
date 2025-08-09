@@ -18,7 +18,7 @@ def getRecipeAgent(model_client):
         config = load_config()
         agent_info = config['agents']['RecipeAgent']
         
-        planner_agent = AssistantAgent(
+        recipe_agent = AssistantAgent(
             name = agent_info['name'],
             model_client=model_client,
             description='An agent that create receipe based on the food menu',
@@ -26,7 +26,7 @@ def getRecipeAgent(model_client):
         )
         log.info("Recipe Agent Initialized", agent_info = list(agent_info.keys()))
         
-        return planner_agent
+        return recipe_agent
     
     except Exception as e:
         log.error("Error Initializing Recipe Agent", agent_info = list(agent_info.keys()))
