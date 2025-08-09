@@ -9,45 +9,41 @@ A two-layer, config-driven multi‑agent application that plans menus, produces 
 ```mermaid
 flowchart TD
     %% ========= LLM / Config / Prompts / Infra =========
-    subgraph Infra[Infrastructure & Shared Utilities]
-        ML[Model Loader<br/>(OpenAIChatCompletionClient)]
-        CFG[Config Loader<br/>(config/config.yaml)]
-        PROMPTS[System Messages<br/>(PROMPT_MESSAGES)]
-        LOG[Custom Logger<br/>(structlog + AutoGen loggers)]
-        EXC[Custom Exception<br/>(rich traceback)]
+    subgraph Infra["Infrastructure & Shared Utilities"]
+        ML["Model Loader (OpenAI client)"]
+        CFG["Config Loader (config/config.yaml)"]
+        PROMPTS["System Messages (PROMPT_MESSAGES)"]
+        LOG["Custom Logger (structlog + AutoGen)"]
+        EXC["Custom Exception (traceback)"]
     end
 
     %% ========= Outer Team =========
-    subgraph OUTER[Outer Team • Event Management]
-        EMT[RoundRobinGroupChat<br/>EventManagementTeam]
-        SoM[SocietyOfMindAgent<br/>CulinaryTeamAsAgent]
-        LOGI[AssistantAgent<br/>LogisticAgent]
-        BUD[AssistantAgent<br/>BudgetAgent]
-        FINAL[UserProxyAgent<br/>FinalApproval]
+    subgraph OUTER["Outer Team · Event Management"]
+        EMT["RoundRobinGroupChat: EventManagementTeam"]
+        SoM["SocietyOfMindAgent: CulinaryTeamAsAgent"]
+        LOGI["AssistantAgent: LogisticAgent"]
+        BUD["AssistantAgent: BudgetAgent"]
+        FINAL["UserProxyAgent: FinalApproval"]
     end
 
     %% ========= Inner Team =========
-    subgraph INNER[Inner Team • Culinary]
-        PLAN[AssistantAgent<br/>PlannerAgent]
-        REC[AssistantAgent<br/>RecipeAgent]
-        CRIT[AssistantAgent<br/>CritiqueAgent]
-        UAPP[UserProxyAgent<br/>CulinaryTeamUserApproval]
+    subgraph INNER["Inner Team · Culinary"]
+        PLAN["AssistantAgent: PlannerAgent"]
+        REC["AssistantAgent: RecipeAgent"]
+        CRIT["AssistantAgent: CritiqueAgent"]
+        UAPP["UserProxyAgent: CulinaryTeamUserApproval"]
     end
 
     %% ========= Wiring =========
     User((User)) --> EMT
 
-    %% Outer sequencing
-    EMT --> SoM
+    EMT --> SoM --> PLAN --> REC --> CRIT --> UAPP
+    UAPP -- "approve/revise" --> PLAN
+
     EMT --> LOGI
     EMT --> BUD
     EMT --> FINAL
 
-    %% Inner sequencing via SoM
-    SoM --> PLAN --> REC --> CRIT --> UAPP
-    UAPP -- approve/revise --> PLAN
-
-    %% ========= Dependencies =========
     ML --> PLAN
     ML --> REC
     ML --> CRIT
@@ -57,38 +53,36 @@ flowchart TD
     ML --> SoM
     ML --> EMT
 
-    CFG -. agents, teams, termination .-> PLAN
-    CFG -. agents, teams, termination .-> REC
-    CFG -. agents, teams, termination .-> CRIT
-    CFG -. agents, teams, termination .-> LOGI
-    CFG -. agents, teams, termination .-> BUD
-    CFG -. agents, teams, termination .-> EMT
-    CFG -. stop word / max turns .-> EMT
-    CFG -. stop word / max msg turns .-> SoM
+    CFG -. "agents/teams/termination" .-> PLAN
+    CFG -. "agents/teams/termination" .-> REC
+    CFG -. "agents/teams/termination" .-> CRIT
+    CFG -. "agents/teams/termination" .-> LOGI
+    CFG -. "agents/teams/termination" .-> BUD
+    CFG -. "agents/teams/termination" .-> EMT
 
-    PROMPTS -. system_message_key .-> PLAN
-    PROMPTS -. system_message_key .-> REC
-    PROMPTS -. system_message_key .-> CRIT
-    PROMPTS -. system_message_key .-> LOGI
-    PROMPTS -. system_message_key .-> BUD
+    PROMPTS -. "system_message_key" .-> PLAN
+    PROMPTS -. "system_message_key" .-> REC
+    PROMPTS -. "system_message_key" .-> CRIT
+    PROMPTS -. "system_message_key" .-> LOGI
+    PROMPTS -. "system_message_key" .-> BUD
 
-    LOG -. JSON logs for all agents/teams .-> EMT
-    LOG -. JSON logs for all agents/teams .-> SoM
-    LOG -. JSON logs for all agents/teams .-> PLAN
-    LOG -. JSON logs for all agents/teams .-> REC
-    LOG -. JSON logs for all agents/teams .-> CRIT
-    LOG -. JSON logs for all agents/teams .-> LOGI
-    LOG -. JSON logs for all agents/teams .-> BUD
-    LOG -. JSON logs for all agents/teams .-> FINAL
+    LOG -. "JSON logs" .-> EMT
+    LOG -. "JSON logs" .-> SoM
+    LOG -. "JSON logs" .-> PLAN
+    LOG -. "JSON logs" .-> REC
+    LOG -. "JSON logs" .-> CRIT
+    LOG -. "JSON logs" .-> LOGI
+    LOG -. "JSON logs" .-> BUD
+    LOG -. "JSON logs" .-> FINAL
 
-    EXC -. wrapped setup/runtime errors .-> EMT
-    EXC -. wrapped setup/runtime errors .-> SoM
-    EXC -. wrapped setup/runtime errors .-> PLAN
-    EXC -. wrapped setup/runtime errors .-> REC
-    EXC -. wrapped setup/runtime errors .-> CRIT
-    EXC -. wrapped setup/runtime errors .-> LOGI
-    EXC -. wrapped setup/runtime errors .-> BUD
-    EXC -. wrapped setup/runtime errors .-> FINAL
+    EXC -. "wrapped errors" .-> EMT
+    EXC -. "wrapped errors" .-> SoM
+    EXC -. "wrapped errors" .-> PLAN
+    EXC -. "wrapped errors" .-> REC
+    EXC -. "wrapped errors" .-> CRIT
+    EXC -. "wrapped errors" .-> LOGI
+    EXC -. "wrapped errors" .-> BUD
+    EXC -. "wrapped errors" .-> FINAL
 ```
 
 ---
@@ -118,44 +112,83 @@ flowchart TD
 `config/config.yaml` drives agent names, prompt keys, team members, and termination rules.
 
 ```yaml
-llm_config:
-  provider: openai
-  model_name: gpt-4o-mini
-
+# General settings for termination
 termination:
-  word: "<STOP>"
-  max_turns: 24
-  max_message_turns: 12
+  word: "APPROVE"
+  max_message_turns: 13
+  max_turns: 12
+
+# LLM configuration
+llm_config:
+  openai:
+    provider: "openai"
+    model_name: "gpt-4o-mini"
+    max_tokens: 8192
+
+# Agent configurations
+agents:
+  # Inner Team Agents
+  PlannerAgent:
+    name: "PlannerAgent"
+    system_message_key: "PlannerAgent" 
+    is_user_proxy: false
+
+  RecipeAgent:
+    name: "RecipeAgent"
+    system_message_key: "RecipeAgent"
+    is_user_proxy: false
+
+  CritiqueAgent:
+    name: "CritiqueAgent"
+    system_message_key: "CritiqueAgent"
+    is_user_proxy: false
+
+  # Inner Team User Proxy Agent
+  CulinaryTeamUserApproval:
+    name: "CulinaryTeamUserApproval"
+    system_message_key: "CulinaryTeamUserApproval"
+    is_user_proxy: true
+    human_input_mode: "ALWAYS" 
+
+  # Outer Team Agents
+  CulinaryTeamAsAgent:
+    name: "CulinaryTeamAsAgent"
+    system_message_key: "CulinaryTeamAsAgent"
+    is_user_proxy: false
+
+  LogisticAgent:
+    name: "LogisticAgent"
+    system_message_key: "LogisticAgent"
+    is_user_proxy: false
+
+  BudgetAgent:
+    name: "BudgetAgent"
+    system_message_key: "BudgetAgent"
+    is_user_proxy: false
+
+  # Outer Team User Proxy Agent
+  FinalApproval:
+    name: "FinalApproval"
+    system_message_key: "FinalApproval"
+    is_user_proxy: true
+    human_input_mode: "ALWAYS"
 
 teams:
   CulinaryTeam:
-    name: "Culinary Team"
-    members: ["PlannerAgent", "RecipeAgent", "CritiqueAgent", "CulinaryTeamUserApproval"]
+    name: "CulinaryTeam"
+    members:
+      - PlannerAgent
+      - RecipeAgent
+      - CritiqueAgent
+      - CulinaryTeamUserApproval
 
   EventManagementTeam:
-    name: "Event Management Team"
-    members: ["CulinaryTeamAsAgent", "LogisticAgent", "BudgetAgent", "FinalApproval"]
-
-agents:
-  PlannerAgent:
-    name: "Planner"
-    system_message_key: "planner_message"
-
-  RecipeAgent:
-    name: "Recipe Writer"
-    system_message_key: "recipe_message"
-
-  CritiqueAgent:
-    name: "Critic"
-    system_message_key: "critique_message"
-
-  LogisticAgent:
-    name: "Logistics"
-    system_message_key: "logistics_message"
-
-  BudgetAgent:
-    name: "Budgeter"
-    system_message_key: "budget_message"
+    name: "EventManagementTeam"
+    members:
+      - CulinaryTeamAsAgent
+      - LogisticAgent
+      - BudgetAgent
+      - FinalApproval
 ```
 
 > Ensure `system_message_key` values exist in your `PROMPT_MESSAGES` map.
