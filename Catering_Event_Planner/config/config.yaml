@@ -6,9 +6,10 @@ termination:
 
 # LLM configuration
 llm_config:
-  provider: "openai"
-  model_name: "gpt-4o-mini"
-  max_tokens: 8192
+  openai:
+    provider: "openai"
+    model_name: "gpt-4o-mini"
+    max_tokens: 8192
 
 # Agent configurations
 agents:
