@@ -37,9 +37,9 @@ agents:
     human_input_mode: "ALWAYS" 
 
   # Outer Team Agents
-  CulinaryTeamAgent:
-    name: "CulinaryTeamAgent"
-    system_message_key: "CulinaryTeamAgent"
+  CulinaryTeamAsAgent:
+    name: "CulinaryTeamAsAgent"
+    system_message_key: "CulinaryTeamAsAgent"
     is_user_proxy: false
 
   LogisticAgent:
@@ -58,3 +58,20 @@ agents:
     system_message_key: "FinalApproval"
     is_user_proxy: true
     human_input_mode: "ALWAYS"
+
+teams:
+  CulinaryTeam:
+    name: "CulinaryTeam"
+    members:
+      - PlannerAgent
+      - RecipeAgent
+      - CritiqueAgent
+      - CulinaryTeamUserApproval
+
+  OuterTeam:
+    name: "EventManagementTeam"
+    members:
+      - CulinaryTeamAsAgent
+      - LogisticAgent
+      - BudgetAgent
+      - FinalApproval

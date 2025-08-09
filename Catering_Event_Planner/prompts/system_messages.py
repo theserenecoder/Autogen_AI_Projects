@@ -79,7 +79,7 @@ PROMPT_MESSAGES = {
     "PlannerAgent" : planner_agent,
     "RecipeAgent" : recipe_agent,
     "CritiqueAgent": critique_agent,
-    "CulinaryTeamAgent" : culinary_team_agent,
+    "CulinaryTeamAsAgent" : culinary_team_agent,
     "LogisticAgent" : logistic_agent,
     "BudgetAgent" : budget_agent
 }
