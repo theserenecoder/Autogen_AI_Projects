@@ -68,7 +68,7 @@ teams:
       - CritiqueAgent
       - CulinaryTeamUserApproval
 
-  OuterTeam:
+  EventManagementTeam:
     name: "EventManagementTeam"
     members:
       - CulinaryTeamAsAgent

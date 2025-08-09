@@ -37,11 +37,11 @@ def getFinalApproval():
         ## logging info
         log.info("Initializing Final Approval Agent")
         ## loding config
-        config = load_config
-        agent_info = load_config['FinalApproval']
+        config = load_config()
+        agent_info = config['agents']['FinalApproval']
         ##agent
         final_approval = UserProxyAgent(
-            name = agent_info['FinalApproval'],
+            name = agent_info['name'],
             description="A proxy agent that represent the user for final approval",
             input_func=input
         )

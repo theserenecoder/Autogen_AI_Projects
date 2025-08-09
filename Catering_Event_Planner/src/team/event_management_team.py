@@ -85,8 +85,9 @@ if __name__ =='__main__':
         team = getEventManagementTeam(model_client)
         
         task="""
-        Please plan a menu for a formal dinner party for 30 people.
-        The guests have no dietary restrictions but prefer a menu that includes a mix of textures and flavors'''
+        Please plan a menu for a formal dinner party for 30 people. The budget for food is $50 per person. 
+        The guests have no dietary restrictions but prefer a menu that includes a mix of textures and flavors. 
+        Keep the item list to 5 items only
         """
         
         await Console(team.run_stream(task=task))
