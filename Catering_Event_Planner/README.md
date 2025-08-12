@@ -5,7 +5,58 @@ A two-layer, config-driven multi‑agent application that plans menus, produces 
 ---
 
 ## Architecture
+```mermaid
+---
+config:
+  layout: dagre
+  theme: base
+  look: neo
+---
+flowchart TB
+ subgraph subGraph0["Event Management Team"]
+    direction LR
+        B("CulinaryTeamAsAgent")
+        A["User"]
+        C("LogisticAgent")
+        D("BudgetAgent")
+        E["Final Approval User"]
+        n2["Event Approved"]
+  end
+ subgraph subGraph1["Culinary Team"]
+        G("PlannerAgent")
+        H("RecipeAgent")
+        I("CritiqueAgent")
+        J["CulinaryTeamUserApproval"]
+        K("Finalized Menu")
+  end
+    A L_A_B_0@-- Initial Request --> B
+    B L_B_C_0@-- Finalized Menu --> C
+    C L_C_D_0@-- Logistics Plan --> D
+    D L_D_E_0@-- Final Plan & Budget --> E
+    G L_G_H_0@-- Menu Outline --> H
+    H L_H_I_0@-- Recipes --> I
+    I L_I_J_0@-- Propose for Approval --> J
+    J L_J_K_0@-- Approved Menu --> K
+    B L_B_G_0@--> G
+    J L_J_G_0@-- Feedback --> G
+    K L_K_B_0@--> B
+    E L_E_B_0@-- Feedback --> B
+    E L_E_n2_0@--> n2
+    L_A_B_0@{ animation: slow } 
+    L_B_C_0@{ animation: slow } 
+    L_C_D_0@{ animation: slow } 
+    L_D_E_0@{ animation: slow } 
+    L_G_H_0@{ animation: fast } 
+    L_H_I_0@{ animation: fast } 
+    L_I_J_0@{ animation: fast } 
+    L_J_K_0@{ animation: slow } 
+    L_B_G_0@{ animation: slow } 
+    L_J_G_0@{ animation: fast } 
+    L_K_B_0@{ animation: slow } 
+    L_E_B_0@{ animation: slow } 
+    L_E_n2_0@{ animation: slow }
 
+```
 
 ---
 
