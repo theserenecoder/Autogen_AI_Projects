@@ -208,7 +208,7 @@ teams:
 
 ---
 
-## Directory Layout (suggested)
+## Directory Layout
 
 ```
 .
