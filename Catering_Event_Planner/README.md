@@ -100,7 +100,7 @@ The Culinary Team is a `RoundRobinGroupChat` team, a specialized squad focused e
 - **Outer team**: `TextMentionTermination(stop_word)` | `Max_Turns()`
 
 ---
-### Output
+## Output
 ![alt text](images/image.png)
 ![alt text](images/image-1.png)
 ![alt text](images/image-2.png)
