@@ -1,6 +1,6 @@
 # 🍽️ Multi-Agent Culinary & Event Management System
 
-A two-layer, config-driven multi‑agent application that plans menus, produces recipes, critiques feasibility, then generates logistics and budgets for events. It’s built on **autogen_agentchat** with robust logging and exception handling.
+A two-layer, config-driven multi‑agent application that plans menus, produces recipes, critiques feasibility, then generates logistics and budgets for events. It’s built on **Autogen** with robust logging and exception handling.
 
 ---
 
@@ -60,24 +60,51 @@ flowchart TB
 
 ---
 
-## Components
+## WorkFlow
 
-### Inner “Culinary Team”
-- **PlannerAgent** → interprets user brief and proposes a structured menu.
-- **RecipeAgent** → produces detailed recipes and yields.
-- **CritiqueAgent** → checks feasibility, conflicts, and consistency; requests revision as needed.
-- **CulinaryTeamUserApproval** → interactive user proxy for approval in the inner loop.
+### 📋 Event Management Team Workflow
 
-### Outer “Event Management Team”
-- **CulinaryTeamAsAgent (SocietyOfMindAgent)** → wraps the inner team as a single capability.
-- **LogisticAgent** → shopping list, equipment needs, prep timeline & day-of schedule.
-- **BudgetAgent** → costs for ingredients and rentals; total budget & assumptions.
-- **FinalApproval (UserProxyAgent)** → end-of-pipeline sign-off.
+The EventManagementTeam is the main orchestrator a `RoundRobinGroupChat` team of specialized agents working together to plan an event from start to finish.It ensures each part of the process flows smoothly by engaging the right agent at the right time.
+
+1. **Task Initiation** -> It starts with user sharing it's request.
+2. **Menu & Recipe Planning** -> The task goes to `CulinaryTeamAsAgent` a SocietyofMind agent that represts the entire culinary team. This team dives deep into creating a menu that fits users event’s style, preferences, and constraints.
+3. **Logistics Planning** -> Once the menu is finalized, the LogisticAgent steps in.It turns the menu into a step-by-step action plan, including:
+    - A shopping list
+    - A preparation timeline
+    - An equipment list
+4. **Budget Calculation** -> The BudgetAgent takes the logistics plan and calculates the total cost covering ingredients, rentals, and any special equipment.
+5. **Final Approval** -> Everything — the menu, logistics, and budget — is handed to FinalApproval (that’s you!) for a last review and sign-off or feedback.
+
+### 👨‍🍳 Culinary Team Workflow
+
+The Culinary Team is a `RoundRobinGroupChat` team, a specialized squad focused entirely on menu and recipe creation. They operate inside `CulinaryTeamAsAgent` and follow their own step-by-step process.
+
+1. **Request from Outer Team** -> The PlannerAgent receives the task from the Event Management Team. Translate users request into a `Structured Menu Outline`.
+2. **Recipe Generation** -> The RecipeAgent brings the outline to life with detailed, creative recipes including ingredients, measurements, and instructions.
+3. **Critique and Refinement** -> The CritiqueAgent reviews each recipe for feasibility, practicality, and flavor balance. Provides its feedback to the user.
+4. **Intermediate User Approval** -> The CulinaryTeamUserApproval agent checks in with the user to Approve the menu and recipies or gather their feedback.
+5. **Finalizing the Menu** -> Once the menu and recipies are finalized, it is send back to the `Event Management Team`.
+
+### 🤖 Agent Roles
+- **PlannerAgent** → Interprets user brief and proposes a structured menu.
+- **RecipeAgent** → Develops full recipes with ingredients, measurements, and steps.
+- **CritiqueAgent** → Checks feasibility, conflicts, and consistency; provide feedback to user.
+- **CulinaryTeamUserApproval (UserProxyAgent)** → Interactive user proxy for approval in the inner loop.
+- **CulinaryTeamAsAgent (SocietyOfMindAgent)** → Wraps the entire Culinary Team into a single agent for the outer team.
+- **LogisticAgent** → Shopping list, equipment needs, prep timeline & day-of schedule.
+- **BudgetAgent** → Costs for ingredients and rentals; total budget & assumptions.
+- **FinalApproval (UserProxyAgent)** → End-of-pipeline sign-off.
 
 ### Termination
-- **Inner team**: `TextMentionTermination(stop_word)` ⋁ `MaxMessageTermination(max_message_turns)`  
-- **Outer team**: `TextMentionTermination(stop_word)` ⋁ `MaxMessageTermination(max_turns)`
+- **Inner team**: `TextMentionTermination(stop_word)` | `MaxMessageTermination(max_message_turns)`  
+- **Outer team**: `TextMentionTermination(stop_word)` | `Max_Turns()`
 
+---
+### Output
+![alt text](images/image.png)
+![alt text](images/image-1.png)
+![alt text](images/image-2.png)
+![alt text](images/image-3.png)
 ---
 
 ## Configuration (YAML)
