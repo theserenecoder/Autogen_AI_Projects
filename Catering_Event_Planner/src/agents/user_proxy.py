@@ -1,10 +1,12 @@
 from autogen_agentchat.agents import UserProxyAgent
 import sys
+import streamlit as st
 
 from logger.custom_logger import CustomLogger
 from exception.custom_exception import CustomException
 from utils.config_loader import load_config
 from prompts.system_messages import PROMPT_MESSAGES
+
 
 
 def getCulinaryTeamUserApproval():
@@ -20,7 +22,7 @@ def getCulinaryTeamUserApproval():
         culinary_team_user_approval = UserProxyAgent(
             name = agent_info['name'],
             description='A proxy agent that represent the user',
-            input_func=input
+            input_func= input,
         )
         log.info("Successfully Initialized Culinary Team Approval Agent", agent_info=list(agent_info.keys()))
         

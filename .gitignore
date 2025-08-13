@@ -5,3 +5,4 @@ temp
 work_dir_docker
 logs/
 catering_event_planner.egg-info
+streamlit_app2.py

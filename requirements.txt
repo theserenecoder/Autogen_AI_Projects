@@ -10,3 +10,5 @@ docker
 streamlit
 pyyaml
 structlog
+autogen-ext[langchain]
+langchain_community
